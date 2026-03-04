@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Autonomy Scale Lab (V1)</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 32px; max-width: 900px; }
+      .section { margin-top: 24px; border: 1px solid #ddd; padding: 16px; border-radius: 8px; }
+      .section-title { font-weight: bold; margin-bottom: 12px; }
+      textarea { width: 100%; height: 90px; }
+      button { background: #000; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+      button:disabled { opacity: 0.5; }
+      .json-toggle { cursor: pointer; text-decoration: underline; font-size: 14px; }
+      pre { background: #f6f6f6; padding: 12px; overflow: auto; font-size: 12px; }
+      .error { color: red; }
+      .success { color: green; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid #eee; }
+      th { font-weight: bold; }
+    </style>
+  </head>
+  <body>
+    <h2>Autonomy Scale Lab (V1)</h2>
+    <p>Question &rarr; Intent &rarr; ModelSpec &rarr; Compute &rarr; Insight</p>
+
+    <div class="section">
+      <div class="section-title">Question</div>
+      <textarea id="q">Can Company A become a $1T company by 2035?</textarea>
+      <div style="margin-top: 12px;">
+        <button id="btn">Solve</button>
+      </div>
+      <div id="error" class="error"></div>
+    </div>
+
+    <div id="results" style="display: none;">
+      <!-- Intent & Confidence -->
+      <div class="section">
+        <div class="section-title">Intent & Confidence</div>
+        <div><strong>Intent:</strong> <span id="intent"></span></div>
+        <div><strong>Confidence:</strong> <span id="confidence"></span></div>
+      </div>
+
+      <!-- Computed Outputs -->
+      <div class="section">
+        <div class="section-title">Computed Outputs</div>
+        <div id="outputs"></div>
+      </div>
+
+      <!-- Extras (binding constraint, crossover, etc.) -->
+      <div class="section" id="extras-section" style="display: none;">
+        <div class="section-title">Analysis Extras</div>
+        <div id="extras"></div>
+      </div>
+
+      <!-- Sensitivity -->
+      <div class="section" id="sensitivity-section" style="display: none;">
+        <div class="section-title">Sensitivity Analysis</div>
+        <div id="sensitivity-info"></div>
+        <div id="sensitivity-table"></div>
+      </div>
+
+      <!-- Insight -->
+      <div class="section">
+        <div class="section-title">AI Insight</div>
+        <div id="insight"></div>
+      </div>
+
+      <!-- ModelSpec JSON -->
+      <div class="section">
+        <div class="section-title">
+          ModelSpec JSON 
+          <span class="json-toggle" id="json-toggle">Hide</span>
+        </div>
+        <pre id="spec-json"></pre>
+      </div>
+    </div>
+
+    <script>
+      const btn = document.getElementById("btn");
+      const results = document.getElementById("results");
+      const error = document.getElementById("error");
+      const jsonToggle = document.getElementById("json-toggle");
+      const specJson = document.getElementById("spec-json");
+      let showJson = true;
+
+      jsonToggle.onclick = () => {
+        showJson = !showJson;
+        specJson.style.display = showJson ? "block" : "none";
+        jsonToggle.textContent = showJson ? "Hide" : "Show";
+      };
+
+      btn.onclick = async () => {
+        const question = document.getElementById("q").value;
+        if (!question.trim()) {
+          error.textContent = "Please enter a question";
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Solving...";
+        error.textContent = "";
+        results.style.display = "none";
+
+        try {
+          const res = await fetch("/solve", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question })
+          });
+
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || `HTTP ${res.status}`);
+          }
+
+          const data = await res.json();
+          displayResults(data);
+        } catch (e) {
+          error.textContent = String(e);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Solve";
+        }
+      };
+
+      function displayResults(data) {
+        // Intent & Confidence
+        document.getElementById("intent").textContent = data.intent;
+        document.getElementById("confidence").textContent = data.confidence.toFixed(2);
+
+        // Outputs
+        const outputsDiv = document.getElementById("outputs");
+        outputsDiv.innerHTML = "";
+        Object.entries(data.outputs).forEach(([key, value]) => {
+          const div = document.createElement("div");
+          div.innerHTML = `<strong>${key}:</strong> ${Number(value).toLocaleString()}`;
+          outputsDiv.appendChild(div);
+        });
+
+        // Extras
+        const extrasSection = document.getElementById("extras-section");
+        const extrasDiv = document.getElementById("extras");
+        if (Object.keys(data.extras || {}).length > 0) {
+          extrasSection.style.display = "block";
+          extrasDiv.innerHTML = "";
+          Object.entries(data.extras).forEach(([key, value]) => {
+            const div = document.createElement("div");
+            if (key === "ranked_constraints") {
+              div.innerHTML = `<strong>${key}:</strong><pre>${JSON.stringify(value, null, 2)}</pre>`;
+            } else {
+              div.innerHTML = `<strong>${key}:</strong> ${value}`;
+            }
+            extrasDiv.appendChild(div);
+          });
+        } else {
+          extrasSection.style.display = "none";
+        }
+
+        // Sensitivity
+        const sensitivitySection = document.getElementById("sensitivity-section");
+        const sensitivityInfo = document.getElementById("sensitivity-info");
+        const sensitivityTable = document.getElementById("sensitivity-table");
+        
+        if (data.sensitivity && data.sensitivity.length > 0) {
+          sensitivitySection.style.display = "block";
+          const sens = data.sensitivity;
+          sensitivityInfo.innerHTML = `
+            <strong>Input:</strong> ${sens[0].x} → ${sens[sens.length - 1].x}<br>
+            <strong>Output:</strong> ${sens[0].y.toFixed(2)} → ${sens[sens.length - 1].y.toFixed(2)}
+          `;
+          
+          let tableHTML = "<table><thead><tr><th>Input</th><th>Output</th></tr></thead><tbody>";
+          sens.forEach(row => {
+            tableHTML += `<tr><td>${row.x.toFixed(2)}</td><td>${row.y.toFixed(2)}</td></tr>`;
+          });
+          tableHTML += "</tbody></table>";
+          sensitivityTable.innerHTML = tableHTML;
+        } else {
+          sensitivitySection.style.display = "none";
+        }
+
+        // Insight
+        document.getElementById("insight").textContent = data.insight;
+
+        // ModelSpec JSON
+        specJson.textContent = JSON.stringify(data.spec, null, 2);
+
+        results.style.display = "block";
+      }
+    </script>
+  </body>
+</html>

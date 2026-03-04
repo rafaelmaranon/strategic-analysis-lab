@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Examples Lab (Isolated)</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 32px; max-width: 900px; background: #f9fafb; }
+      .container { max-width: 4xl; margin: 0 auto; }
+      h1 { color: #111827; font-size: 2rem; font-weight: bold; margin-bottom: 0.5rem; }
+      .subtitle { color: #6b7280; margin-bottom: 2rem; }
+      .banner { background: #dbeafe; border: 1px solid #3b82f6; border-radius: 6px; padding: 1rem; margin-bottom: 1.5rem; }
+      .banner-title { font-weight: bold; color: #1e40af; margin-bottom: 0.5rem; }
+      .banner ul { margin: 0; padding-left: 1.5rem; color: #1e40af; font-size: 0.875rem; }
+      .card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1.5rem; margin-bottom: 1.5rem; }
+      .label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.5rem; }
+      textarea { width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.875rem; resize: vertical; }
+      button { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      button.secondary { background: #6b7280; }
+      .error { color: #dc2626; font-size: 0.875rem; margin-top: 0.5rem; }
+      .examples { background: #f3f4f6; padding: 1rem; border-radius: 6px; font-size: 0.875rem; }
+      .examples ul { margin: 0; padding-left: 1.5rem; }
+      .examples li { margin-bottom: 0.25rem; }
+      pre { white-space: pre-wrap; font-family: inherit; font-size: 0.875rem; line-height: 1.5; color: #374151; }
+      .loading { text-align: center; color: #6b7280; padding: 2rem; }
+      .section-divider { border-top: 2px solid #e5e7eb; margin: 1.5rem 0; padding-top: 1rem; }
+      .section-title { font-weight: bold; color: #1f2937; margin-bottom: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Examples Lab (Isolated)</h1>
+      <p class="subtitle">ChatGPT + 10 Autonomy Scale Examples. No compute engine.</p>
+      <p style="color: #6b7280; font-size: 0.875rem; margin-bottom: 2rem;">Model: gpt-4.1</p>
+
+      <div id="retrieval-status" class="card" style="display: none;">
+        <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1rem;">Retrieval Status</h3>
+        <div id="retrieval-info"></div>
+      </div>
+
+      <div class="banner">
+        <div class="banner-title">Examples Lab (LLM-only analysis)</div>
+        <ul>
+          <li>Uses domain examples</li>
+          <li>Uses public benchmark sanity checks</li>
+          <li>No deterministic compute engine</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <label for="question" class="label">Question</label>
+        <textarea id="question" rows="3">Can Company B become a $1T company by 2035?</textarea>
+        <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+          <button id="analyze">Analyze</button>
+          <button id="toggle-examples" class="secondary">Show examples</button>
+        </div>
+        <div id="error" class="error"></div>
+      </div>
+
+      <div id="examples-card" class="card" style="display: none;">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem;">Reference Examples</h3>
+        <div class="examples">
+          <ul>
+            <li>Valuation ladder: Company A $1T by 2035</li>
+            <li>City fleet capacity: SF 15K robotaxis</li>
+            <li>Market scale: 500M trips/week by 2040</li>
+            <li>Launch readiness: City X driverless in 6 weeks</li>
+            <li>Edge cases: 15% utilization drop from weather</li>
+            <li>Fleet ops efficiency: 20% improvement without headcount</li>
+            <li>Teleops scaling: When does teleops dominate costs?</li>
+            <li>Demand saturation: LA 100K robotaxis</li>
+            <li>Break-even: Miles per vehicle per year</li>
+            <li>Infrastructure bottleneck: 3M deliveries/day</li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="snippets-card" class="card" style="display: none;">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem;">
+          Public snippets used 
+          <span class="json-toggle" id="snippets-toggle">Hide</span>
+        </h3>
+        <div id="snippets"></div>
+      </div>
+
+      <div id="result-card" class="card" style="display: none;">
+        <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem;">Analysis</h3>
+        <pre id="result"></pre>
+      </div>
+
+      <div id="loading" class="card loading" style="display: none;">
+        Analyzing question...
+      </div>
+    </div>
+
+    <script>
+      const questionEl = document.getElementById('question');
+      const analyzeBtn = document.getElementById('analyze');
+      const toggleBtn = document.getElementById('toggle-examples');
+      const examplesCard = document.getElementById('examples-card');
+      const snippetsCard = document.getElementById('snippets-card');
+      const resultCard = document.getElementById('result-card');
+      const resultEl = document.getElementById('result');
+      const snippetsEl = document.getElementById('snippets');
+      const errorEl = document.getElementById('error');
+      const loadingEl = document.getElementById('loading');
+      const snippetsToggle = document.getElementById('snippets-toggle');
+      const retrievalStatus = document.getElementById('retrieval-status');
+      const retrievalInfo = document.getElementById('retrieval-info');
+
+      let showExamples = false;
+      let showSnippets = true;
+
+      toggleBtn.onclick = () => {
+        showExamples = !showExamples;
+        examplesCard.style.display = showExamples ? 'block' : 'none';
+        toggleBtn.textContent = showExamples ? 'Hide examples' : 'Show examples';
+      };
+
+      snippetsToggle.onclick = () => {
+        showSnippets = !showSnippets;
+        snippetsEl.style.display = showSnippets ? 'block' : 'none';
+        snippetsToggle.textContent = showSnippets ? 'Hide' : 'Show';
+      };
+
+      function updateRetrievalStatus(snippets) {
+        if (snippets && snippets.length > 0) {
+          const provider = snippets[0].source_domain ? snippets[0].source_domain : 'Unknown';
+          const lastFetch = snippets[0].fetched_at || new Date().toISOString();
+          
+          retrievalInfo.innerHTML = `
+            <div style="color: #059669; font-weight: bold;">✅ Working</div>
+            <div>Provider: ${provider}</div>
+            <div>Last fetch: ${new Date(lastFetch).toLocaleString()}</div>
+            <div>Snippets found: ${snippets.length}</div>
+          `;
+        } else {
+          retrievalInfo.innerHTML = `
+            <div style="color: #dc2626; font-weight: bold;">❌ Not configured</div>
+            <div>Search API not available</div>
+          `;
+        }
+        retrievalStatus.style.display = 'block';
+      }
+
+      analyzeBtn.onclick = async () => {
+        const question = questionEl.value.trim();
+        if (!question) {
+          errorEl.textContent = 'Please enter a question';
+          return;
+        }
+
+        errorEl.textContent = '';
+        resultCard.style.display = 'none';
+        snippetsCard.style.display = 'none';
+        loadingEl.style.display = 'block';
+        analyzeBtn.disabled = true;
+        analyzeBtn.textContent = 'Analyzing...';
+
+        try {
+          const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question })
+          });
+
+          if (!response.ok) {
+            const error = await response.json();
+            
+            // Handle 503 retrieval failure specifically
+            if (response.status === 503) {
+              errorEl.innerHTML = `
+                <div style="font-weight: bold; color: #dc2626;">Retrieval is required. Configure a real search provider or this tool will not run.</div>
+                <div style="font-size: 0.875rem; margin-top: 0.5rem;">Details: ${JSON.stringify(error.details, null, 2)}</div>
+              `;
+              updateRetrievalStatus(null);
+              return;
+            }
+            
+            throw new Error(error.error || `HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          resultEl.textContent = data.answer;
+          resultCard.style.display = 'block';
+
+          // Show snippets if available
+          if (data.snippets && data.snippets.length > 0) {
+            snippetsEl.innerHTML = '';
+            data.snippets.forEach((snippet, i) => {
+              const div = document.createElement('div');
+              div.style.marginBottom = '0.75rem';
+              div.innerHTML = `
+                <div style="font-weight: bold; color: #1f2937;">[${i + 1}] ${snippet.title}</div>
+                <div style="color: #6b7280; font-size: 0.875rem;">${snippet.snippet}</div>
+                <div style="color: #9ca3af; font-size: 0.75rem;">Source: <a href="${snippet.url}" target="_blank">${snippet.source_domain}</a></div>
+                <div style="color: #9ca3af; font-size: 0.75rem;">Fetched: ${new Date(snippet.fetched_at).toLocaleString()}</div>
+              `;
+              snippetsEl.appendChild(div);
+            });
+            snippetsCard.style.display = 'block';
+            updateRetrievalStatus(data.snippets);
+          }
+        } catch (error) {
+          errorEl.textContent = error.message;
+          updateRetrievalStatus(null);
+        } finally {
+          loadingEl.style.display = 'none';
+          analyzeBtn.disabled = false;
+          analyzeBtn.textContent = 'Analyze';
+        }
+      };
+    </script>
+  </body>
+</html>
