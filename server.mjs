@@ -15,7 +15,6 @@ function checkKillSwitch(req, res, next) {
 }
 
 app.use(checkKillSwitch);
-app.use(express.static("public"));
 
 // Clean API - single analyze endpoint
 app.post("/api/analyze", async (req, res) => {
@@ -58,7 +57,7 @@ app.post("/api/analyze", async (req, res) => {
   }
 });
 
-// Serve Examples Lab HTML as default
+// Serve Examples Lab HTML
 app.get("/", (req, res) => {
   res.sendFile("examples-lab.html", { root: "." });
 });
@@ -71,7 +70,5 @@ app.get("/examples-lab", (req, res) => {
   res.sendFile("examples-lab.html", { root: "." });
 });
 
-app.listen(3000, () => {
-  console.log("Strategic Analysis Lab running on http://localhost:3000");
-  console.log("Examples Lab: http://localhost:3000/examples-lab");
-});
+// For Vercel, export the app
+export default app;
