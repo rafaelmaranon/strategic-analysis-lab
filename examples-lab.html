@@ -49,7 +49,7 @@
 
       <div class="card">
         <label for="question" class="label">Question</label>
-        <textarea id="question" rows="3">Can Company B become a $1T company by 2035?</textarea>
+        <textarea id="question" rows="3">Can Waymo become a $1T company by 2035?</textarea>
         <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
           <button id="analyze">Analyze</button>
           <button id="toggle-examples" class="secondary">Show examples</button>
@@ -61,16 +61,16 @@
         <h3 style="margin-top: 0; margin-bottom: 1rem; font-size: 1rem;">Reference Examples</h3>
         <div class="examples">
           <ul>
-            <li>Valuation ladder: Company A $1T by 2035</li>
-            <li>City fleet capacity: SF 15K robotaxis</li>
-            <li>Market scale: 500M trips/week by 2040</li>
-            <li>Launch readiness: City X driverless in 6 weeks</li>
-            <li>Edge cases: 15% utilization drop from weather</li>
-            <li>Fleet ops efficiency: 20% improvement without headcount</li>
-            <li>Teleops scaling: When does teleops dominate costs?</li>
-            <li>Demand saturation: LA 100K robotaxis</li>
-            <li>Break-even: Miles per vehicle per year</li>
-            <li>Infrastructure bottleneck: 3M deliveries/day</li>
+            <li><a href="#" onclick="setQuestion('Valuation ladder: Company A $1T by 2035'); return false;" style="color: #3b82f6; text-decoration: underline;">Valuation ladder: Company A $1T by 2035</a></li>
+            <li><a href="#" onclick="setQuestion('City fleet capacity: SF 15K robotaxis'); return false;" style="color: #3b82f6; text-decoration: underline;">City fleet capacity: SF 15K robotaxis</a></li>
+            <li><a href="#" onclick="setQuestion('Market scale: 500M trips/week by 2040'); return false;" style="color: #3b82f6; text-decoration: underline;">Market scale: 500M trips/week by 2040</a></li>
+            <li><a href="#" onclick="setQuestion('Launch readiness: City X driverless in 6 weeks'); return false;" style="color: #3b82f6; text-decoration: underline;">Launch readiness: City X driverless in 6 weeks</a></li>
+            <li><a href="#" onclick="setQuestion('Edge cases: 15% utilization drop from weather'); return false;" style="color: #3b82f6; text-decoration: underline;">Edge cases: 15% utilization drop from weather</a></li>
+            <li><a href="#" onclick="setQuestion('Fleet ops efficiency: 20% improvement without headcount'); return false;" style="color: #3b82f6; text-decoration: underline;">Fleet ops efficiency: 20% improvement without headcount</a></li>
+            <li><a href="#" onclick="setQuestion('Teleops scaling: When does teleops dominate costs?'); return false;" style="color: #3b82f6; text-decoration: underline;">Teleops scaling: When does teleops dominate costs?</a></li>
+            <li><a href="#" onclick="setQuestion('Demand saturation: LA 100K robotaxis'); return false;" style="color: #3b82f6; text-decoration: underline;">Demand saturation: LA 100K robotaxis</a></li>
+            <li><a href="#" onclick="setQuestion('Break-even: Miles per vehicle per year'); return false;" style="color: #3b82f6; text-decoration: underline;">Break-even: Miles per vehicle per year</a></li>
+            <li><a href="#" onclick="setQuestion('Infrastructure bottleneck: 3M deliveries/day'); return false;" style="color: #3b82f6; text-decoration: underline;">Infrastructure bottleneck: 3M deliveries/day</a></li>
           </ul>
         </div>
       </div>
@@ -110,6 +110,10 @@
 
       let showExamples = false;
       let showSnippets = true;
+
+      function setQuestion(questionText) {
+        questionEl.value = questionText;
+      }
 
       toggleBtn.onclick = () => {
         showExamples = !showExamples;

@@ -33,17 +33,16 @@ export function buildSearchQueries(question) {
   const lowerQuestion = question.toLowerCase();
 
   // Company-specific queries with baseline facts
-  if (lowerQuestion.includes('company b')) {
+  if (lowerQuestion.includes('waymo')) {
     // Always include baseline fact queries
     queries.push(
-      'TICKER_B market cap',
-      'Company B market cap stockanalysis',
-      'Company B market cap companiesmarketcap',
-      'Company B annual revenue 2025 2024',
-      'Company B revenue latest annual',
-      'Company B energy storage revenue Megapack',
-      'Company B robotaxi plans 2026',
-      'Company B automotive revenue breakdown'
+      'WAYMO market cap',
+      'Waymo market cap stockanalysis',
+      'Waymo market cap companiesmarketcap',
+      'Waymo annual revenue 2025 2024',
+      'Waymo revenue latest annual',
+      'Waymo robotaxi plans 2026',
+      'Waymo automotive revenue breakdown'
     );
   }
 
@@ -185,17 +184,17 @@ export async function fetchPublicSnippets(queries) {
         domainWeight(r.source_domain) >= 3
       );
 
-      if (!hasMarketCapBaseline && queries.some(q => q.toLowerCase().includes('company b'))) {
+      if (!hasMarketCapBaseline && queries.some(q => q.toLowerCase().includes('waymo'))) {
         console.log("ExamplesLab: Missing market cap baseline, running fallback search");
         
-        // Fallback search for Company B market cap on preferred domains
+        // Fallback search for Waymo market cap on preferred domains
         try {
           const fallbackResponse = await fetch('https://api.tavily.com/search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               api_key: TAVILY_API_KEY,
-              query: 'TICKER_B market cap site:stockanalysis.com OR site:companiesmarketcap.com',
+              query: 'Waymo market cap site:stockanalysis.com OR site:companiesmarketcap.com',
               search_depth: 'basic',
               include_answer: false,
               max_results: 2,

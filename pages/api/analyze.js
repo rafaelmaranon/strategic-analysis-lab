@@ -1,5 +1,7 @@
 import { Redis } from '@upstash/redis';
 import OpenAI from "openai";
+import { buildExamplesPrompt } from '../../src/examples_lab/prompt_v1.mjs';
+import { buildSearchQueries, fetchPublicSnippets } from '../../src/examples_lab/public_context.mjs';
 
 // Initialize Redis for rate limiting
 const redis = new Redis({
@@ -59,10 +61,23 @@ function getClientIP(request) {
 
 // Simplified OpenAI call function
 async function runExamplesLab(userQuestion) {
-  // For now, return a simple response without public context
-  // to avoid import issues with public_context.mjs
-  const systemPrompt = `You are a strategic analysis assistant. Answer the user's question concisely and accurately.`;
-  const userPrompt = `Question: ${userQuestion}`;
+  // Build search queries and fetch real snippets
+  const queries = buildSearchQueries(userQuestion);
+  console.log("Generated queries:", queries);
+  
+  let publicSnippets = [];
+  try {
+    publicSnippets = await fetchPublicSnippets(queries);
+    console.log("Successfully fetched", publicSnippets.length, "snippets");
+  } catch (error) {
+    console.log("Search failed:", error.message);
+    // Continue without snippets rather than failing completely
+  }
+  
+  const { systemPrompt, userPrompt } = buildExamplesPrompt({ 
+    userQuestion, 
+    publicSnippets 
+  });
 
   const modelName = "gpt-4";
   console.log("Examples Lab model:", modelName);
@@ -75,12 +90,12 @@ async function runExamplesLab(userQuestion) {
     ],
     temperature: 0.2,
     top_p: 1,
-    max_tokens: 800
+    max_tokens: 2000 // Increased to allow for structured output
   });
 
   return {
     answer: resp.choices[0].message.content,
-    snippets: [] // No snippets for now due to import issues
+    snippets: publicSnippets
   };
 }
 

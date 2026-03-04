@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 export default function ExamplesLab() {
-  const [question, setQuestion] = useState("Can Company B become a $1T company by 2035?")
+  const [question, setQuestion] = useState("Can Waymo become a $1T company by 2035?")
   const [answer, setAnswer] = useState("")
   const [loading, setLoading] = useState(false)
   const [showExamples, setShowExamples] = useState(false)
@@ -67,7 +67,7 @@ export default function ExamplesLab() {
         
         if (response.status === 503) {
           setError(`Retrieval is required. Configure a real search provider or this tool will not run. Details: ${JSON.stringify(error.details, null, 2)}`)
-          updateRetrievalStatus(null)
+          updateRetrievalStatus([])
           return
         }
         
@@ -80,7 +80,7 @@ export default function ExamplesLab() {
       updateRetrievalStatus(data.snippets || [])
     } catch (error: any) {
       setError(error.message)
-      updateRetrievalStatus(null)
+      updateRetrievalStatus([])
     } finally {
       setLoading(false)
     }
@@ -153,7 +153,23 @@ export default function ExamplesLab() {
           <h3 style={{ margin: '0 0 1rem 0', fontSize: '1rem' }}>Reference Examples</h3>
           <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
             {examples.map((example, i) => (
-              <li key={i} style={{ marginBottom: '0.25rem' }}>{example}</li>
+              <li key={i} style={{ marginBottom: '0.25rem' }}>
+                <button
+                  onClick={() => setQuestion(example)}
+                  style={{ 
+                    background: 'none', 
+                    border: 'none', 
+                    color: '#3b82f6', 
+                    textDecoration: 'underline', 
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: 'inherit',
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  {example}
+                </button>
+              </li>
             ))}
           </ul>
         </div>

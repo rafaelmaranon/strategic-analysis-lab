@@ -12,7 +12,7 @@ Rules:
 - Be concise but thorough (like the examples)
 
 First, interpret what the user is actually asking:
-- If the question is about an EXISTING COMPANY valuation (Company B, Apple, etc.), consider current company scale and multiple business lines
+- If the question is about an EXISTING COMPANY valuation (Waymo, Apple, etc.), consider current company scale and multiple business lines
 - Only choose "Robotaxi network" model if the question explicitly asks about robotaxi economics OR if the company is primarily a robotaxi operator (e.g., Company A)
 - Always choose ONE primary model path: (A) Corporate valuation path, (B) Robotaxi network path, (C) Unit economics path, (D) Launch readiness path
 
