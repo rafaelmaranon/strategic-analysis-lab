@@ -59,15 +59,15 @@ app.post("/api/analyze", async (req, res) => {
 
 // Serve Examples Lab HTML
 app.get("/", (req, res) => {
-  res.sendFile("examples-lab.html", { root: "." });
+  res.sendFile("../examples-lab.html", { root: "." });
 });
 
 app.get("/index.html", (req, res) => {
-  res.sendFile("examples-lab.html", { root: "." });
+  res.sendFile("../examples-lab.html", { root: "." });
 });
 
 app.get("/examples-lab", (req, res) => {
-  res.sendFile("examples-lab.html", { root: "." });
+  res.sendFile("../examples-lab.html", { root: "." });
 });
 
 // For Vercel, export the app
