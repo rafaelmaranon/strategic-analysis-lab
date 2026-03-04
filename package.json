@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.mjs"
+    "dev": "node server.mjs",
+    "vercel-build": "echo 'Build complete'"
   },
   "dependencies": {
     "@upstash/redis": "^1.34.2",
