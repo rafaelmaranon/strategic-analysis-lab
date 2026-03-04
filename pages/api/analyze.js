@@ -1,7 +1,5 @@
 import { Redis } from '@upstash/redis';
 import OpenAI from "openai";
-import { buildExamplesPrompt } from '../../src/examples_lab/prompt_v1.mjs';
-import { buildSearchQueries, fetchPublicSnippets } from '../../src/examples_lab/public_context.mjs';
 
 // Initialize Redis for rate limiting
 const redis = new Redis({
@@ -61,6 +59,10 @@ function getClientIP(request) {
 
 // Simplified OpenAI call function
 async function runExamplesLab(userQuestion) {
+  // Import the examples lab system dynamically for Vercel compatibility
+  const { buildExamplesPrompt } = await import('../../src/examples_lab/prompt_v1.mjs');
+  const { buildSearchQueries, fetchPublicSnippets } = await import('../../src/examples_lab/public_context.mjs');
+  
   // Build search queries and fetch real snippets
   const queries = buildSearchQueries(userQuestion);
   console.log("Generated queries:", queries);
