@@ -58,8 +58,12 @@ app.post("/api/analyze", async (req, res) => {
   }
 });
 
-// Serve Examples Lab HTML
+// Serve Examples Lab HTML as default
 app.get("/", (req, res) => {
+  res.sendFile("examples-lab.html", { root: "." });
+});
+
+app.get("/index.html", (req, res) => {
   res.sendFile("examples-lab.html", { root: "." });
 });
 
